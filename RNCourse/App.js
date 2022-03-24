@@ -1,49 +1,67 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, Button, TextInput, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, View, Button, FlatList } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+
+import GoalItem from './components/GoalItem';
+import GoalInput from './components/GoalInput';
 
 export default function App() {
-	const [ user, setUser ] = useState('');
 	const [ listUser, setListUser ] = useState([]);
+	const [ isVisible, setVisible ] = useState(false);
 
-	const userHandler = (user) => {
-		setUser(user);
+	const startAddGoalHandler = () => {
+		setVisible(true);
 	};
 
-	const addListUser = () => {
+	const endAddGoalHandler = () => {
+		setVisible(false);
+	};
+
+	const addListUser = (userPass) => {
 		setListUser((currUser) => [
 			...currUser,
 			{
-				text: user,
+				text: userPass,
 				// key: Math.random().toString() }
 				id: Math.random().toString()
 			}
 		]);
+		endAddGoalHandler();
+	};
+
+	const deleteGoalHandler = (id) => {
+		setListUser((users) => {
+			return users.filter((user) => user.id !== id);
+		});
 	};
 
 	return (
-		<View style={styles.appContainer}>
-			<View style={styles.inputContainer}>
-				<TextInput style={styles.textInput} placeholder="Your name" onChangeText={userHandler} />
-				<Button title="Add User" onPress={addListUser} />
+		<>
+			<StatusBar style='light'/>
+			<View style={styles.appContainer}>
+				<Button title="Add New User" color="#5e0acc" onPress={startAddGoalHandler} />
+				<GoalInput visible={isVisible} onAddGoal={addListUser} closeButton={endAddGoalHandler} />
+				<View style={styles.goalsContainer}>
+					<FlatList
+						data={listUser}
+						renderItem={(itemData) => {
+							itemData.index;
+							return (
+								<GoalItem
+									id={itemData.item.id}
+									text={itemData.item.text}
+									onDeleteItem={deleteGoalHandler}
+								/>
+							);
+						}}
+						keyExtractor={(item, index) => {
+							return item.id;
+						}}
+						alwaysBounceVertical={false}
+					/>
+				</View>
 			</View>
-			<View style={styles.goalsContainer}>
-				<FlatList
-					alwaysBounceVertical={false}
-					data={listUser}
-					keyExtractor={(item, index) => {
-						return item.id;
-					}}
-					renderItem={(itemData) => {
-						itemData.index;
-						return (
-							<View style={styles.goalItem}>
-								<Text style={styles.textItem}>{itemData.item.text}</Text>
-							</View>
-						);
-					}}
-				/>
-			</View>
-		</View>
+		</>
 	);
 }
 
@@ -53,32 +71,7 @@ const styles = StyleSheet.create({
 		paddingTop: 50,
 		paddingHorizontal: 16
 	},
-	inputContainer: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 24,
-		borderBottomWidth: 1,
-		borderBottomColor: '#cccccc'
-	},
-	textInput: {
-		borderWidth: 1,
-		borderColor: '#cccccc',
-		width: '70%',
-		marginRight: 8,
-		padding: 8
-	},
 	goalsContainer: {
 		flex: 5
-	},
-	goalItem: {
-		margin: 8,
-		padding: 8,
-		borderRadius: 6,
-		backgroundColor: '#5e0acc'
-	},
-	textItem: {
-		color: 'white'
 	}
 });
